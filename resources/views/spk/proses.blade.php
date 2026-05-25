@@ -64,51 +64,129 @@
         </div>
 
         <div class="relative z-10">
-            <form action="{{ route('spk.hitung') }}" method="POST">
-                @csrf
-                <button type="submit" class="w-full bg-white text-indigo-600 hover:bg-indigo-50 font-bold py-4 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
-                    </svg>
-                    Hitung SPK Sekarang
-                </button>
-            </form>
+            <!-- Tombol Hitung ini diletakkan di luar form, kita hubungkan dengan atribut form="form-nominasi" -->
+            <button type="submit" form="form-nominasi" class="w-full bg-white text-indigo-600 hover:bg-indigo-50 font-bold py-4 px-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                </svg>
+                Hitung SPK Sekarang
+            </button>
         </div>
     </div>
 </div>
 
-<!-- Daftar Pegawai Preview -->
-<div class="bg-white dark:bg-slate-800/80 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-sm overflow-hidden transition-all duration-300">
-    <div class="p-6 border-b border-slate-100 dark:border-slate-700/50">
-        <h3 class="font-bold text-slate-800 dark:text-white text-lg">Daftar Kandidat Rotasi</h3>
+<!-- Daftar Pegawai Preview (Sekarang menjadi Form Nominasi) -->
+<form id="form-nominasi" action="{{ route('spk.hitung') }}" method="POST">
+    @csrf
+    
+    @error('jabatan_ids')
+    <div class="bg-red-50 dark:bg-red-500/10 border-l-4 border-red-500 p-4 mb-4 rounded-r-2xl">
+        <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ $message }}</p>
     </div>
-    <div class="overflow-x-auto p-4">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50 first:rounded-l-xl">NIP</th>
-                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50">Nama Pegawai</th>
-                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50">Jabatan Saat Ini</th>
-                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50 text-center last:rounded-r-xl">Status Penilaian</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($pegawais as $pegawai)
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                    <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 text-sm">{{ $pegawai->nip }}</td>
-                    <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 font-semibold text-slate-800 dark:text-slate-200 text-sm">{{ $pegawai->nama }}</td>
-                    <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 text-sm">{{ $pegawai->jabatan->nama_jabatan ?? '-' }}</td>
-                    <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center">
-                        @if($pegawai->arsip && $pegawai->observasi)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Siap</span>
-                        @else
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400">Belum Lengkap</span>
-                        @endif
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    @enderror
+
+    <!-- Nominasi Jabatan -->
+    <div class="bg-white dark:bg-slate-800/80 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-sm overflow-hidden transition-all duration-300 mb-8">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800 dark:text-white text-lg">Pilih Jabatan yang Dibuka (Kosong)</h3>
+            <span class="text-xs text-slate-500 dark:text-slate-400">Centang jabatan yang akan dicari kandidatnya</span>
+        </div>
+        <div class="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @forelse($jabatanTersedia as $item)
+            <label class="flex items-start gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors group">
+                <div class="flex items-center h-5">
+                    <input type="checkbox" name="jabatan_ids[]" value="{{ $item->id_jabatan }}" class="w-5 h-5 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer" checked>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ $item->jabatan->nama_jabatan ?? 'Jabatan Tidak Diketahui' }}</span>
+                    <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Sistem akan mencocokkan kandidat ke posisi ini</span>
+                </div>
+            </label>
+            @empty
+            <div class="col-span-full p-4 text-center text-slate-500 dark:text-slate-400 text-sm">
+                Belum ada satupun Target Profil yang dikonfigurasi. Silakan buat Target Profil terlebih dahulu.
+            </div>
+            @endforelse
+        </div>
     </div>
-</div>
+
+    @error('nominasi_ids')
+    <div class="bg-red-50 dark:bg-red-500/10 border-l-4 border-red-500 p-4 mb-4 rounded-r-2xl">
+        <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ $message }}</p>
+    </div>
+    @enderror
+
+    <div class="bg-white dark:bg-slate-800/80 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-sm overflow-hidden transition-all duration-300">
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700/50 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800 dark:text-white text-lg">Nominasi Bursa Rotasi</h3>
+            <span class="text-xs text-slate-500 dark:text-slate-400">Centang pegawai yang masuk bursa rotasi</span>
+        </div>
+        <div class="overflow-x-auto p-4">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50 first:rounded-l-xl text-center w-16">
+                            <input type="checkbox" id="selectAll" class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer">
+                        </th>
+                        <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50">NIP</th>
+                        <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50">Nama Pegawai</th>
+                        <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50">Jabatan Saat Ini</th>
+                        <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50 text-center last:rounded-r-xl">Status Penilaian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($pegawais as $pegawai)
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center">
+                            <input type="checkbox" name="nominasi_ids[]" value="{{ $pegawai->id }}" class="nominasi-checkbox w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer">
+                        </td>
+                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 text-sm">{{ $pegawai->nip }}</td>
+                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 font-semibold text-slate-800 dark:text-slate-200 text-sm">{{ $pegawai->nama }}</td>
+                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 text-sm">{{ $pegawai->jabatan->nama_jabatan ?? '-' }}</td>
+                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center flex flex-col items-center gap-1">
+                            @if($pegawai->arsip)
+                                <span class="inline-flex items-center w-full justify-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Arsip: OK</span>
+                            @else
+                                <span class="inline-flex items-center w-full justify-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400">Arsip: X</span>
+                            @endif
+
+                            @if($pegawai->observasi)
+                                <span class="inline-flex items-center w-full justify-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Observasi: OK</span>
+                            @else
+                                <span class="inline-flex items-center w-full justify-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400">Observasi: X</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.nominasi-checkbox');
+
+        selectAllCheckbox.addEventListener('change', function() {
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        });
+
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                // If one checkbox is unchecked, uncheck the select all checkbox
+                if (!this.checked) {
+                    selectAllCheckbox.checked = false;
+                } else {
+                    // Check if all checkboxes are checked
+                    const allChecked = Array.from(checkboxes).every(c => c.checked);
+                    selectAllCheckbox.checked = allChecked;
+                }
+            });
+        });
+    });
+</script>
 @endsection

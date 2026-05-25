@@ -182,6 +182,7 @@
                 </a>
                 @endif
 
+                @if(Auth::user()->role === 'Admin')
                 <a href="{{ route('spk.hasil') }}" 
                    class="flex items-center gap-4 py-3.5 px-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('spk.hasil') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200/50 dark:shadow-indigo-900/50 scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700/50 hover:shadow-sm hover:scale-[1.02] active:scale-95' }}">
                     <div class="{{ request()->requestUri === '/spk/hasil' ? 'text-indigo-100' : 'text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400' }}">
@@ -189,6 +190,7 @@
                     </div>
                     <span class="font-semibold text-sm">Hasil Rotasi</span>
                 </a>
+                @endif
 
                 <!-- SECTION: PIMPINAN -->
                 <div class="pt-4 pb-2">
@@ -200,7 +202,7 @@
                     <div class="{{ request()->routeIs('validasi.*') ? 'text-emerald-100' : 'text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
                     </div>
-                    <span class="font-semibold text-sm">Validasi Keputusan</span>
+                    <span class="font-semibold text-sm">Hasil & Validasi</span>
                 </a>
             </nav>
 

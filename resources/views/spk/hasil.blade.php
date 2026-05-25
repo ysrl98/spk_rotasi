@@ -7,14 +7,22 @@
         <p class="text-slate-500 dark:text-slate-400 mt-2 transition-colors duration-300">Tabel peringkat kandidat terbaik untuk setiap posisi jabatan berdasarkan nilai Profile Matching.</p>
     </div>
     
-    <div>
-        <!-- Nanti bisa diganti dengan rute validasi jika sudah dibuat -->
-        <a href="{{ route('validasi.index') }}" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 dark:shadow-indigo-900/50 transition-all font-semibold flex items-center gap-2">
-            Validasi Keputusan
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-        </a>
+    <div class="flex items-center gap-3">
+        @php
+            $adaDisetujui = \App\Models\HasilRotasi::where('status_validasi', 'Disetujui')->exists();
+        @endphp
+
+        @if($adaDisetujui && Auth::user()->role === 'Admin')
+        <form action="{{ route('spk.eksekusi') }}" method="POST" onsubmit="return confirm('PERINGATAN: Mengeksekusi mutasi akan secara PERMANEN memindahkan jabatan pegawai, mengubah kuota jabatan, dan mengosongkan layar hasil ini. Apakah Anda yakin ingin melanjutkan?');">
+            @csrf
+            <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg shadow-rose-200 dark:shadow-rose-900/50 transition-all font-bold flex items-center gap-2 animate-pulse hover:animate-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                </svg>
+                Eksekusi Mutasi Permanen
+            </button>
+        </form>
+        @endif
     </div>
 </div>
 

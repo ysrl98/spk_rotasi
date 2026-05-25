@@ -55,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
         // Eksekusi SPK Profile Matching
         Route::get('/spk/proses', [SpkController::class, 'proses'])->name('spk.proses');
         Route::post('/spk/hitung', [SpkController::class, 'hitung'])->name('spk.hitung');
+        Route::post('/spk/eksekusi', [SpkController::class, 'eksekusi'])->name('spk.eksekusi');
     });
 
     // ==========================================
