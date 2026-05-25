@@ -6,22 +6,6 @@
     <p class="text-slate-500 dark:text-slate-400 mt-2 transition-colors duration-300">Proses algoritma pencocokan profil untuk menentukan rekomendasi rotasi jabatan yang paling optimal.</p>
 </div>
 
-@if (session('error'))
-<div class="bg-red-50 dark:bg-red-500/10 border-l-4 border-red-500 p-4 mb-8 rounded-r-2xl">
-    <div class="flex items-start">
-        <div class="flex-shrink-0 mt-0.5">
-            <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-            </svg>
-        </div>
-        <div class="ml-3">
-            <h3 class="text-sm font-bold text-red-800 dark:text-red-200">Terjadi Kesalahan</h3>
-            <p class="text-sm mt-1 text-red-700 dark:text-red-300">{{ session('error') }}</p>
-        </div>
-    </div>
-</div>
-@endif
-
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
     <!-- Status Data -->
     <div class="lg:col-span-2 bg-white dark:bg-slate-800/80 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-sm p-8 transition-all duration-300">

@@ -6,6 +6,7 @@
     <p class="text-slate-500 dark:text-slate-400 mt-2 transition-colors duration-300">Selamat datang, Anda login sebagai <strong>{{ $role ?? 'User' }}</strong>.</p>
 </div>
 
+<!-- Statistik Cards Row -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Card Pegawai -->
     <div class="bg-white dark:bg-slate-800/80 p-6 rounded-3xl border border-slate-100 dark:border-slate-700/50 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300 group">
@@ -60,8 +61,29 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+<!-- Charts Grid Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
     
+    <!-- Chart 1: Kebutuhan Formasi Jabatan (Bar Chart) -->
+    <div class="bg-white dark:bg-slate-800/80 p-6 rounded-3xl border border-slate-100 dark:border-slate-700/50 shadow-sm transition-all duration-300">
+        <div class="flex justify-between items-center mb-4 px-2">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white transition-colors">Kuota Kebutuhan Formasi</h3>
+            <span class="text-[10px] bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">Jabatan Terbuka</span>
+        </div>
+        <div id="chart-formasi" class="w-full"></div>
+    </div>
+
+    <!-- Chart 2: Persentase Status Nominasi SPK (Donut Chart) -->
+    <div class="bg-white dark:bg-slate-800/80 p-6 rounded-3xl border border-slate-100 dark:border-slate-700/50 shadow-sm transition-all duration-300">
+        <div class="flex justify-between items-center mb-4 px-2">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white transition-colors">Persentase Status Nominasi</h3>
+            <span class="text-[10px] bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">Hasil SPK</span>
+        </div>
+        <div id="chart-nominasi" class="w-full flex items-center justify-center min-h-[320px]"></div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
     <!-- Informasi Sistem & Peringatan -->
     <div class="lg:col-span-2 space-y-6">
         @if($pegawaiBelumLengkap > 0)
@@ -106,7 +128,7 @@
     </div>
 
     <!-- Papan Formasi Kosong -->
-    <div class="bg-indigo-600 dark:bg-indigo-700 p-8 rounded-3xl text-white shadow-xl shadow-indigo-200 dark:shadow-indigo-900/50 relative overflow-hidden">
+    <div class="bg-indigo-600 dark:bg-indigo-700 p-8 rounded-3xl text-white shadow-xl shadow-indigo-200 dark:shadow-indigo-900/50 relative overflow-hidden h-full flex flex-col justify-between">
         <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-bl-full"></div>
         <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-indigo-500/50 rounded-full blur-xl"></div>
         
@@ -143,6 +165,241 @@
             @endif
         </div>
     </div>
-
 </div>
+
+<!-- ApexCharts Script Integration -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Detect current dark mode state
+        let isDark = document.documentElement.classList.contains('dark');
+        
+        // Colors & Theme Config
+        const getChartTheme = (dark) => ({
+            mode: dark ? 'dark' : 'light',
+            palette: 'palette1',
+            monochrome: {
+                enabled: false
+            }
+        });
+
+        // 1. DATA FOR BAR CHART (Formasi Terbuka)
+        const formasiCategories = [
+            @foreach($jabatanKosong as $jb)
+                "{{ $jb->nama_jabatan }}",
+            @endforeach
+        ];
+        const formasiData = [
+            @foreach($jabatanKosong as $jb)
+                {{ $jb->kuota_kosong }},
+            @endforeach
+        ];
+
+        // Bar Chart Options
+        const optionsFormasi = {
+            chart: {
+                type: 'bar',
+                height: 320,
+                toolbar: { show: false },
+                background: 'transparent',
+                fontFamily: 'Plus Jakarta Sans, sans-serif'
+            },
+            series: [{
+                name: 'Kebutuhan Kuota',
+                data: formasiData
+            }],
+            colors: ['#6366f1'], // Indigo-500
+            plotOptions: {
+                bar: {
+                    borderRadius: 8,
+                    horizontal: false,
+                    columnWidth: '40%',
+                    dataLabels: { position: 'top' }
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    return val + " Orang";
+                },
+                offsetY: -22,
+                style: {
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    colors: [isDark ? '#e2e8f0' : '#475569']
+                }
+            },
+            stroke: { show: false },
+            grid: {
+                borderColor: isDark ? '#334155' : '#f1f5f9',
+                strokeDashArray: 4,
+                padding: { left: 10, right: 10, bottom: 0 }
+            },
+            xaxis: {
+                categories: formasiCategories,
+                labels: {
+                    style: {
+                        colors: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: '11px',
+                        fontWeight: 500
+                    }
+                },
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: {
+                title: {
+                    text: 'Jumlah Kuota (Orang)',
+                    style: {
+                        color: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: '11px',
+                        fontWeight: 500
+                    }
+                },
+                labels: {
+                    style: {
+                        colors: isDark ? '#94a3b8' : '#64748b',
+                        fontSize: '11px'
+                    }
+                },
+                min: 0,
+                forceNiceScale: true
+            },
+            tooltip: {
+                theme: isDark ? 'dark' : 'light',
+                y: {
+                    formatter: function(val) { return val + " Orang" }
+                }
+            },
+            theme: getChartTheme(isDark)
+        };
+
+        const chartFormasi = new ApexCharts(document.querySelector("#chart-formasi"), optionsFormasi);
+        chartFormasi.render();
+
+
+        // 2. DATA FOR DONUT CHART (Status Nominasi Rotasi)
+        const menunggu = {{ $kandidatMenunggu }};
+        const disetujui = {{ $kandidatDisetujui }};
+        const ditolak = {{ $kandidatDitolak }};
+        
+        // Donut Chart Options
+        const optionsNominasi = {
+            chart: {
+                type: 'donut',
+                height: 320,
+                background: 'transparent',
+                fontFamily: 'Plus Jakarta Sans, sans-serif'
+            },
+            series: [disetujui, menunggu, ditolak],
+            labels: ['Siap Dieksekusi (Disetujui)', 'Menunggu Validasi', 'Ditolak Pimpinan'],
+            colors: ['#10b981', '#f59e0b', '#ef4444'], // Emerald-500, Amber-500, Red-500
+            stroke: {
+                show: true,
+                width: 2,
+                colors: [isDark ? '#1e293b' : '#ffffff']
+            },
+            dataLabels: { enabled: false },
+            legend: {
+                position: 'bottom',
+                fontSize: '11px',
+                fontWeight: 600,
+                labels: {
+                    colors: isDark ? '#e2e8f0' : '#475569'
+                },
+                markers: { radius: 12, width: 10, height: 10 }
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '72%',
+                        labels: {
+                            show: true,
+                            name: {
+                                show: true,
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: isDark ? '#94a3b8' : '#64748b',
+                                offsetY: -8
+                            },
+                            value: {
+                                show: true,
+                                fontSize: '24px',
+                                fontWeight: 800,
+                                color: isDark ? '#ffffff' : '#1e293b',
+                                offsetY: 8,
+                                formatter: function(val) { return val }
+                            },
+                            total: {
+                                show: true,
+                                label: 'Total Nominasi',
+                                color: isDark ? '#94a3b8' : '#64748b',
+                                formatter: function (w) {
+                                    return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            tooltip: {
+                theme: isDark ? 'dark' : 'light'
+            },
+            theme: getChartTheme(isDark)
+        };
+
+        const chartNominasi = new ApexCharts(document.querySelector("#chart-nominasi"), optionsNominasi);
+        chartNominasi.render();
+
+
+        // 3. THEME SYNCHRONIZATION WITH DARK MODE TOGGLE
+        const themeBtn = document.getElementById('theme-toggle');
+        if (themeBtn) {
+            themeBtn.addEventListener('click', function() {
+                // Wait slightly for documentElement class to update
+                setTimeout(() => {
+                    const darkNow = document.documentElement.classList.contains('dark');
+                    
+                    // Update chart 1 (Bar Chart) options dynamically
+                    chartFormasi.updateOptions({
+                        theme: getChartTheme(darkNow),
+                        dataLabels: {
+                            style: { colors: [darkNow ? '#e2e8f0' : '#475569'] }
+                        },
+                        grid: { borderColor: darkNow ? '#334155' : '#f1f5f9' },
+                        xaxis: {
+                            labels: { style: { colors: darkNow ? '#94a3b8' : '#64748b' } }
+                        },
+                        yaxis: {
+                            title: { style: { color: darkNow ? '#94a3b8' : '#64748b' } },
+                            labels: { style: { colors: darkNow ? '#94a3b8' : '#64748b' } }
+                        },
+                        tooltip: { theme: darkNow ? 'dark' : 'light' }
+                    });
+
+                    // Update chart 2 (Donut Chart) options dynamically
+                    chartNominasi.updateOptions({
+                        theme: getChartTheme(darkNow),
+                        stroke: { colors: [darkNow ? '#1e293b' : '#ffffff'] },
+                        legend: {
+                            labels: { colors: darkNow ? '#e2e8f0' : '#475569' }
+                        },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    labels: {
+                                        name: { color: darkNow ? '#94a3b8' : '#64748b' },
+                                        value: { color: darkNow ? '#ffffff' : '#1e293b' },
+                                        total: { color: darkNow ? '#94a3b8' : '#64748b' }
+                                    }
+                                }
+                            }
+                        },
+                        tooltip: { theme: darkNow ? 'dark' : 'light' }
+                    });
+                }, 100);
+            });
+        }
+    });
+</script>
 @endsection

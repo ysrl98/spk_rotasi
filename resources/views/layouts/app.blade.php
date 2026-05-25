@@ -54,9 +54,28 @@
             66% { transform: translate(-20px, 20px) scale(0.9); }
             100% { transform: translate(0px, 0px) scale(1); }
         }
+
+        /* Animasi Toast */
+        .toast-enter {
+            animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .toast-exit {
+            animation: toastSlideOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes toastSlideIn {
+            from { transform: translateX(100%) translateY(0); opacity: 0; }
+            to { transform: translateX(0) translateY(0); opacity: 1; }
+        }
+        @keyframes toastSlideOut {
+            from { transform: translateX(0) scale(1); opacity: 1; }
+            to { transform: translateX(50%) scale(0.9); opacity: 0; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 flex h-screen overflow-hidden relative text-slate-800 dark:text-slate-100 transition-colors duration-300">
+    
+    <!-- Floating Toast Container -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none"></div>
     
     <!-- Abstract Mesh Background Decoration -->
     <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-400/20 dark:bg-indigo-600/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob pointer-events-none z-0"></div>
@@ -490,5 +509,77 @@
             mobileSidebarBackdrop.addEventListener('click', closeMobileSidebar);
         }
     </script>
+
+    <!-- Script for Premium Floating Toasts -->
+    <script>
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            // Create toast card element
+            const toast = document.createElement('div');
+            toast.className = `toast-enter flex items-start gap-4 p-4 rounded-2xl shadow-xl backdrop-blur-xl border pointer-events-auto transition-all duration-300 ${
+                type === 'success' 
+                    ? 'bg-emerald-50/90 dark:bg-emerald-950/90 border-emerald-200/50 dark:border-emerald-800/30 text-emerald-800 dark:text-emerald-200 shadow-emerald-100/10 dark:shadow-emerald-950/20' 
+                    : 'bg-rose-50/90 dark:bg-rose-950/90 border-rose-200/50 dark:border-rose-800/30 text-rose-800 dark:text-rose-200 shadow-rose-100/10 dark:shadow-rose-950/20'
+            }`;
+
+            // Define icons based on type
+            const icon = type === 'success' 
+                ? `<div class="p-1 bg-emerald-500 text-white rounded-lg shadow-md shadow-emerald-200 dark:shadow-none shrink-0">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                           <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                       </svg>
+                   </div>`
+                : `<div class="p-1 bg-rose-500 text-white rounded-lg shadow-md shadow-rose-200 dark:shadow-none shrink-0">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                           <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                       </svg>
+                   </div>`;
+
+            toast.innerHTML = `
+                ${icon}
+                <div class="flex-1">
+                    <p class="text-sm font-bold leading-tight">${type === 'success' ? 'Berhasil' : 'Terjadi Kesalahan'}</p>
+                    <p class="text-xs font-semibold mt-1 opacity-90">${message}</p>
+                </div>
+                <button type="button" class="text-current opacity-50 hover:opacity-100 transition-opacity p-0.5 shrink-0" onclick="this.parentElement.remove()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            `;
+
+            // Append to container
+            container.appendChild(toast);
+
+            // Auto dismiss after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                // Remove from DOM after exit animation ends
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        };
+    </script>
+
+    <!-- Trigger Toasts from Laravel Sessions -->
+    @if(session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                window.showToast("{{ session('success') }}", 'success');
+            });
+        </script>
+    @endif
+
+    @if(session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                window.showToast("{{ session('error') }}", 'error');
+            });
+        </script>
+    @endif
 </body>
 </html>

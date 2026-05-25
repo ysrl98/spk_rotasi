@@ -22,6 +22,7 @@ class DashboardController extends Controller
         // Statistik Proses SPK (Hasil Rotasi)
         $kandidatMenunggu = \App\Models\HasilRotasi::where('status_validasi', 'Menunggu')->count();
         $kandidatDisetujui = \App\Models\HasilRotasi::where('status_validasi', 'Disetujui')->count();
+        $kandidatDitolak = \App\Models\HasilRotasi::where('status_validasi', 'Ditolak')->count();
         
         // Cek pegawai yang datanya belum lengkap (Arsip/Observasi)
         $pegawaiBelumLengkap = \App\Models\Pegawai::whereDoesntHave('arsip')
@@ -36,6 +37,7 @@ class DashboardController extends Controller
             'jabatanKosong',
             'kandidatMenunggu',
             'kandidatDisetujui',
+            'kandidatDitolak',
             'pegawaiBelumLengkap'
         ));
     }

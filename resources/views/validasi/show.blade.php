@@ -14,26 +14,6 @@
     </a>
 </div>
 
-@if (session('success'))
-<div class="bg-emerald-50 dark:bg-emerald-500/10 border-l-4 border-emerald-500 p-4 mb-8 rounded-r-2xl">
-    <div class="flex items-center">
-        <div class="ml-3">
-            <p class="text-sm font-medium text-emerald-800 dark:text-emerald-200">{{ session('success') }}</p>
-        </div>
-    </div>
-</div>
-@endif
-
-@if (session('error'))
-<div class="bg-red-50 dark:bg-red-500/10 border-l-4 border-red-500 p-4 mb-8 rounded-r-2xl">
-    <div class="flex items-center">
-        <div class="ml-3">
-            <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ session('error') }}</p>
-        </div>
-    </div>
-</div>
-@endif
-
 <div class="bg-white dark:bg-slate-800/80 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-sm overflow-hidden transition-colors duration-300">
     <div class="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 border-b border-indigo-100 dark:border-indigo-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
