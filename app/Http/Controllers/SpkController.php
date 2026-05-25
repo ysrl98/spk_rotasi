@@ -6,6 +6,7 @@ use App\Models\Pegawai;
 use App\Models\HasilRotasi;
 use App\Services\ProfileMatchingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SpkController extends Controller
 {
@@ -49,8 +50,10 @@ class SpkController extends Controller
         ]);
 
         try {
+            DB::beginTransaction();
+
             // Mereset (Hapus) seluruh hasil rotasi dan data validasi sebelumnya
-            HasilRotasi::truncate();
+            HasilRotasi::query()->delete();
 
             // Ambil kandidat yang dinominasikan dan nilainya sudah lengkap (ada di arsip dan observasi)
             $pegawais = Pegawai::whereIn('id', $request->nominasi_ids)
@@ -77,8 +80,10 @@ class SpkController extends Controller
                 }
             }
 
+            DB::commit();
             return redirect()->route('spk.hasil')->with('success', 'Perhitungan SPK Profile Matching berhasil diselesaikan!');
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menghitung SPK: ' . $e->getMessage());
         }
     }
@@ -108,6 +113,8 @@ class SpkController extends Controller
     public function eksekusi()
     {
         try {
+            DB::beginTransaction();
+            
             // Hanya ambil yang disetujui
             $hasilDisetujui = HasilRotasi::where('status_validasi', 'Disetujui')->get();
 
@@ -144,10 +151,12 @@ class SpkController extends Controller
             }
 
             // 4. Bersihkan data spk untuk menutup siklus periode rotasi
-            HasilRotasi::truncate();
+            HasilRotasi::query()->delete();
 
+            DB::commit();
             return redirect()->route('spk.hasil')->with('success', 'Mutasi berhasil dieksekusi secara permanen! Data pegawai dan kuota jabatan telah diperbarui secara otomatis.');
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with('error', 'Gagal mengeksekusi mutasi: ' . $e->getMessage());
         }
     }

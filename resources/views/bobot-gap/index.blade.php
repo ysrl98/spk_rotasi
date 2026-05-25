@@ -51,7 +51,7 @@
                         <span class="font-bold text-slate-800 dark:text-white">{{ $item->bobot }}</span>
                     </td>
                     <td class="py-4 px-6 border-b border-slate-100 dark:border-slate-700/50 text-center">
-                        <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="flex items-center justify-center gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                             <a href="{{ route('bobot-gap.edit', $item->id) }}" class="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/20 rounded-lg transition-colors" title="Edit">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
@@ -71,7 +71,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="3" class="py-8 text-center text-slate-500 dark:text-slate-400">
+                    <td colspan="3" class="py-8 text-center text-slate-500 dark:text-slate-400 bg-transparent">
                         Belum ada data Bobot GAP. Silakan jalankan seeder atau tambah data baru.
                     </td>
                 </tr>

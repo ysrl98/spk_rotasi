@@ -70,9 +70,9 @@ class ProfileMatchingService
         $nsf = count($secondaryFactors) > 0 ? array_sum($secondaryFactors) / count($secondaryFactors) : 0;
 
         // 6. Hitung Nilai Akhir (Total Value)
-        // Persentase: 60% Core, 40% Secondary
-        $persenCore = 0.60;
-        $persenSecondary = 0.40;
+        // Persentase diambil dari config
+        $persenCore = config('spk.bobot_core_factor', 0.60);
+        $persenSecondary = config('spk.bobot_secondary_factor', 0.40);
         
         $nilai_total = ($persenCore * $ncf) + ($persenSecondary * $nsf);
 
@@ -103,20 +103,24 @@ class ProfileMatchingService
      */
     private function getNilaiRiilPegawai($kriteria, $arsip, $observasi)
     {
-        $nama = strtolower($kriteria->nama_kriteria);
-        
-        // Cek tabel Arsip
-        if (strpos($nama, 'pendidikan') !== false) return $arsip->nilai_pendidikan;
-        if (strpos($nama, 'masa kerja') !== false) return $arsip->nilai_masa_kerja;
-        if (strpos($nama, 'prestasi') !== false || strpos($nama, 'skp') !== false) return $arsip->nilai_skp;
-        if (strpos($nama, 'disiplin') !== false) return $arsip->nilai_disiplin;
-        if (strpos($nama, 'kemampuan') !== false) return $arsip->nilai_skp; // fallback
-        
-        // Cek tabel Observasi
-        if (strpos($nama, 'inisiatif') !== false) return $observasi->nilai_inisiatif;
-        if (strpos($nama, 'kerja sama') !== false || strpos($nama, 'kerjasama') !== false) return $observasi->nilai_kerjasama;
-        
-        // Default jika tidak ditemukan mapping yang pas (asumsi nilai rata-rata 3)
+        // Gunakan pemetaan kolom langsung dari tabel tb_kriteria (sumber_nilai)
+        if (!empty($kriteria->sumber_nilai)) {
+            $sumber = explode('.', $kriteria->sumber_nilai);
+            if (count($sumber) === 2) {
+                $tabel = $sumber[0];
+                $kolom = $sumber[1];
+
+                if ($tabel === 'arsip' && $arsip) {
+                    return $arsip->{$kolom} ?? 3;
+                }
+                
+                if ($tabel === 'observasi' && $observasi) {
+                    return $observasi->{$kolom} ?? 3;
+                }
+            }
+        }
+
+        // Default jika terjadi kesalahan mapping
         return 3;
     }
 

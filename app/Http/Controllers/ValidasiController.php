@@ -30,20 +30,23 @@ class ValidasiController extends Controller
 
     public function setuju($id)
     {
-        $hasil = HasilRotasi::with('jabatan')->findOrFail($id);
-        
-        // Cek apakah kuota sudah terpenuhi
-        $kuota = $hasil->jabatan->kuota_kosong ?? 1;
-        $sudahDisetujui = HasilRotasi::where('id_jabatan_tujuan', $hasil->id_jabatan_tujuan)
-                                     ->where('status_validasi', 'Disetujui')
-                                     ->count();
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($id) {
+            $hasil = HasilRotasi::with('jabatan')->lockForUpdate()->findOrFail($id);
+            
+            // Cek apakah kuota sudah terpenuhi
+            $kuota = $hasil->jabatan->kuota_kosong ?? 1;
+            $sudahDisetujui = HasilRotasi::where('id_jabatan_tujuan', $hasil->id_jabatan_tujuan)
+                                         ->where('status_validasi', 'Disetujui')
+                                         ->lockForUpdate()
+                                         ->count();
 
-        if ($sudahDisetujui >= $kuota) {
-            return redirect()->back()->with('error', 'Gagal! Kuota untuk jabatan ini (' . $kuota . ' orang) sudah terpenuhi. Batalkan kandidat lain terlebih dahulu.');
-        }
+            if ($sudahDisetujui >= $kuota) {
+                return redirect()->back()->with('error', 'Gagal! Kuota untuk jabatan ini (' . $kuota . ' orang) sudah terpenuhi. Batalkan kandidat lain terlebih dahulu.');
+            }
 
-        $hasil->update(['status_validasi' => 'Disetujui']);
-        return redirect()->back()->with('success', 'Rekomendasi rotasi disetujui!');
+            $hasil->update(['status_validasi' => 'Disetujui']);
+            return redirect()->back()->with('success', 'Rekomendasi rotasi disetujui!');
+        });
     }
 
     public function tolak($id)

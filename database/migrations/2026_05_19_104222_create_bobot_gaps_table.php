@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bobot_gaps');
+        Schema::dropIfExists('tb_bobot_gap');
     }
 };

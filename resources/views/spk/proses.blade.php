@@ -103,8 +103,8 @@
                 </div>
             </label>
             @empty
-            <div class="col-span-full p-4 text-center text-slate-500 dark:text-slate-400 text-sm">
-                Belum ada satupun Target Profil yang dikonfigurasi. Silakan buat Target Profil terlebih dahulu.
+            <div class="col-span-full p-4 text-center text-slate-500 dark:text-slate-400 text-sm bg-transparent">
+                Belum ada data Target Profil yang dikonfigurasi. Silakan buat Target Profil terlebih dahulu.
             </div>
             @endforelse
         </div>
@@ -138,12 +138,12 @@
                     @foreach ($pegawais as $pegawai)
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                         <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center">
-                            <input type="checkbox" name="nominasi_ids[]" value="{{ $pegawai->id }}" class="nominasi-checkbox w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer">
+                            <input type="checkbox" name="nominasi_ids[]" value="{{ $pegawai->id }}" class="nominasi-checkbox w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer" checked>
                         </td>
                         <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 text-sm">{{ $pegawai->nip }}</td>
                         <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 font-semibold text-slate-800 dark:text-slate-200 text-sm">{{ $pegawai->nama }}</td>
                         <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 text-sm">{{ $pegawai->jabatan->nama_jabatan ?? '-' }}</td>
-                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center flex flex-col items-center gap-1">
+                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center flex flex-col items-center gap-1 bg-transparent">
                             @if($pegawai->arsip)
                                 <span class="inline-flex items-center w-full justify-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Arsip: OK</span>
                             @else
@@ -169,6 +169,9 @@
         const selectAllCheckbox = document.getElementById('selectAll');
         const checkboxes = document.querySelectorAll('.nominasi-checkbox');
 
+        // Set all checked by default
+        selectAllCheckbox.checked = true;
+
         selectAllCheckbox.addEventListener('change', function() {
             checkboxes.forEach(function(checkbox) {
                 checkbox.checked = selectAllCheckbox.checked;
@@ -187,6 +190,27 @@
                 }
             });
         });
+
+        // Loading state on calculation submission
+        const formNominasi = document.getElementById('form-nominasi');
+        const submitBtn = document.querySelector('button[form="form-nominasi"]');
+
+        if (formNominasi && submitBtn) {
+            formNominasi.addEventListener('submit', function() {
+                // Disable the button to prevent multiple submissions
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-75', 'cursor-not-allowed', 'hover:scale-100', 'active:scale-100');
+                
+                // Set loading spinner and text
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sedang Mengalkulasi SPK...
+                `;
+            });
+        }
     });
 </script>
 @endsection

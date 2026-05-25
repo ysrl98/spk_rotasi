@@ -29,7 +29,14 @@ class TargetProfilController extends Controller
 
     public function store(Request $request)
     {
-        TargetProfil::create($request->all());
+        $validated = $request->validate([
+            'id_jabatan' => 'required|exists:tb_jabatan,id',
+            'id_kriteria' => 'required|exists:tb_kriteria,id',
+            'nilai_target' => 'required|integer|min:1|max:5',
+            'tipe_faktor' => 'required|in:Core,Secondary'
+        ]);
+
+        TargetProfil::create($validated);
         return redirect()->route('target-profil.index')->with('success', 'Target Profil berhasil ditambah.');
     }
 
@@ -42,7 +49,14 @@ class TargetProfilController extends Controller
 
     public function update(Request $request, TargetProfil $target_profil)
     {
-        $target_profil->update($request->all());
+        $validated = $request->validate([
+            'id_jabatan' => 'required|exists:tb_jabatan,id',
+            'id_kriteria' => 'required|exists:tb_kriteria,id',
+            'nilai_target' => 'required|integer|min:1|max:5',
+            'tipe_faktor' => 'required|in:Core,Secondary'
+        ]);
+
+        $target_profil->update($validated);
         return redirect()->route('target-profil.index')->with('success', 'Target Profil berhasil diupdate.');
     }
 

@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tb_users', function (Blueprint $table) {
-            $table->id();
-            $table->string('username', 50);
-            $table->string('password', 255);
-            $table->enum('role', ['Admin', 'Atasan', 'Pimpinan']);
-            $table->timestamps();
+        Schema::table('tb_kriteria', function (Blueprint $table) {
+            $table->string('sumber_nilai', 100)->nullable()->after('nama_kriteria')->comment('Format: arsip.nilai_pendidikan atau observasi.nilai_inisiatif');
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tb_users');
+        Schema::table('tb_kriteria', function (Blueprint $table) {
+            $table->dropColumn('sumber_nilai');
+        });
     }
 };

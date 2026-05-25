@@ -22,7 +22,15 @@ class PegawaiController extends Controller
 
     public function store(Request $request)
     {
-        Pegawai::create($request->all());
+        $validated = $request->validate([
+            'nip' => 'required|string|max:50|unique:tb_pegawai,nip',
+            'nama' => 'required|string|max:100',
+            'pangkat' => 'required|string|max:50',
+            'golongan' => 'required|string|max:20',
+            'id_jabatan' => 'required|exists:tb_jabatan,id'
+        ]);
+
+        Pegawai::create($validated);
         return redirect()->route('pegawai.index')->with('success', 'Pegawai berhasil ditambahkan.');
     }
 
@@ -34,7 +42,15 @@ class PegawaiController extends Controller
 
     public function update(Request $request, Pegawai $pegawai)
     {
-        $pegawai->update($request->all());
+        $validated = $request->validate([
+            'nip' => 'required|string|max:50|unique:tb_pegawai,nip,' . $pegawai->id,
+            'nama' => 'required|string|max:100',
+            'pangkat' => 'required|string|max:50',
+            'golongan' => 'required|string|max:20',
+            'id_jabatan' => 'required|exists:tb_jabatan,id'
+        ]);
+
+        $pegawai->update($validated);
         return redirect()->route('pegawai.index')->with('success', 'Pegawai berhasil diupdate.');
     }
 

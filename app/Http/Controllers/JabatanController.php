@@ -20,12 +20,12 @@ class JabatanController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama_jabatan' => 'required',
             'kuota_kosong' => 'required|integer'
         ]);
 
-        Jabatan::create($request->all());
+        Jabatan::create($validated);
         return redirect()->route('jabatan.index')->with('success', 'Data jabatan berhasil ditambahkan.');
     }
 
@@ -37,13 +37,13 @@ class JabatanController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'nama_jabatan' => 'required',
             'kuota_kosong' => 'required|integer'
         ]);
 
         $jabatan = Jabatan::findOrFail($id);
-        $jabatan->update($request->all());
+        $jabatan->update($validated);
         return redirect()->route('jabatan.index')->with('success', 'Data jabatan berhasil diubah.');
     }
 

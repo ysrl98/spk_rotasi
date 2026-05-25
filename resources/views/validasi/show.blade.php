@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-8 flex justify-between items-center">
+<div class="mb-8 flex justify-between items-end">
     <div>
         <h1 class="text-3xl font-bold text-slate-800 dark:text-white transition-colors duration-300">Validasi Kandidat</h1>
-        <p class="text-slate-500 dark:text-slate-400 mt-2 transition-colors duration-300">Bidang: <strong class="text-indigo-600 dark:text-indigo-400">{{ $jabatan->nama_jabatan }}</strong></p>
+        <p class="text-slate-500 dark:text-slate-400 mt-2 transition-colors duration-300">Bidang: <strong class="text-indigo-600 dark:text-indigo-400 font-bold">{{ $jabatan->nama_jabatan }}</strong></p>
     </div>
     <a href="{{ route('validasi.index') }}" class="px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-semibold flex items-center gap-2 shadow-sm">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -15,33 +15,33 @@
 </div>
 
 @if (session('success'))
-<div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 mb-8 rounded-r-2xl">
+<div class="bg-emerald-50 dark:bg-emerald-500/10 border-l-4 border-emerald-500 p-4 mb-8 rounded-r-2xl">
     <div class="flex items-center">
         <div class="ml-3">
-            <p class="text-sm font-medium text-emerald-800">{{ session('success') }}</p>
+            <p class="text-sm font-medium text-emerald-800 dark:text-emerald-200">{{ session('success') }}</p>
         </div>
     </div>
 </div>
 @endif
 
 @if (session('error'))
-<div class="bg-red-50 border-l-4 border-red-500 p-4 mb-8 rounded-r-2xl">
+<div class="bg-red-50 dark:bg-red-500/10 border-l-4 border-red-500 p-4 mb-8 rounded-r-2xl">
     <div class="flex items-center">
         <div class="ml-3">
-            <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
+            <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ session('error') }}</p>
         </div>
     </div>
 </div>
 @endif
 
-<div class="bg-white dark:bg-slate-800/80 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-sm overflow-hidden">
+<div class="bg-white dark:bg-slate-800/80 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 shadow-sm overflow-hidden transition-colors duration-300">
     <div class="bg-indigo-50/50 dark:bg-indigo-900/10 p-6 border-b border-indigo-100 dark:border-indigo-900/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h3 class="font-extrabold text-slate-800 dark:text-white text-xl">Daftar Peringkat</h3>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Sistem merekomendasikan kandidat peringkat atas berdasarkan Nilai Akhir tertinggi.</p>
         </div>
         <div class="bg-white dark:bg-slate-800 px-4 py-2 rounded-xl border border-indigo-100 dark:border-slate-700 shadow-sm flex items-center gap-2">
-            <span class="text-sm font-medium text-slate-500">Kebutuhan:</span>
+            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Kebutuhan:</span>
             <span class="text-lg font-bold text-red-600 dark:text-red-400">{{ $jabatan->kuota_kosong }}</span>
         </div>
     </div>
@@ -69,12 +69,12 @@
                         @if($index === 0)
                             <div class="w-8 h-8 mx-auto bg-amber-400 text-amber-900 rounded-full flex items-center justify-center font-bold">1</div>
                         @else
-                            <span class="text-slate-500 font-medium">{{ $index + 1 }}</span>
+                            <span class="text-slate-500 dark:text-slate-400 font-medium">{{ $index + 1 }}</span>
                         @endif
                     </td>
                     <td class="py-4 px-4 border-b border-slate-100 dark:border-slate-700/50">
                         <p class="font-bold text-slate-800 dark:text-slate-200">{{ $row->pegawai->nama }}</p>
-                        <p class="text-xs text-slate-500">{{ $row->pegawai->nip }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ $row->pegawai->nip }}</p>
                     </td>
                     <td class="py-4 px-4 text-center border-b border-slate-100 dark:border-slate-700/50">
                         <span class="font-bold text-slate-700 dark:text-slate-300">{{ number_format($row->nilai_total, 2) }}</span>

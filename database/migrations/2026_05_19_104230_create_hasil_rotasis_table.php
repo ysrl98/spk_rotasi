@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('hasil_rotasis');
+        Schema::dropIfExists('tb_hasil_rotasi');
     }
 };

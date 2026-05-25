@@ -20,7 +20,12 @@ class KriteriaController extends Controller
 
     public function store(Request $request)
     {
-        Kriteria::create($request->all());
+        $validated = $request->validate([
+            'nama_kriteria' => 'required|string|max:50',
+            'sumber_nilai' => 'required|string|max:100'
+        ]);
+
+        Kriteria::create($validated);
         return redirect()->route('kriteria.index')->with('success', 'Kriteria berhasil ditambah.');
     }
 
@@ -31,7 +36,12 @@ class KriteriaController extends Controller
 
     public function update(Request $request, Kriteria $kriteria)
     {
-        $kriteria->update($request->all());
+        $validated = $request->validate([
+            'nama_kriteria' => 'required|string|max:50',
+            'sumber_nilai' => 'required|string|max:100'
+        ]);
+
+        $kriteria->update($validated);
         return redirect()->route('kriteria.index')->with('success', 'Kriteria berhasil diupdate.');
     }
 
