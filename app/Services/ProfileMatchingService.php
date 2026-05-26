@@ -14,15 +14,13 @@ class ProfileMatchingService
 {
     /**
      * Hitung SPK untuk satu pegawai terhadap satu jabatan tertentu
+     * Menerima instance model dan collection untuk menghindari N+1 query
      */
-    public function hitung($id_pegawai, $id_jabatan)
+    public function hitung($pegawai, $jabatan, $targets, $bobotGaps, $periodeAktif)
     {
-        $pegawai = Pegawai::findOrFail($id_pegawai);
-        $jabatan = Jabatan::findOrFail($id_jabatan);
-
-        // Ambil data nilai riil
-        $arsip = Arsip::where('id_pegawai', $id_pegawai)->first();
-        $observasi = Observasi::where('id_pegawai', $id_pegawai)->first();
+        // Gunakan relasi yang sudah di-eager load
+        $arsip = $pegawai->arsip;
+        $observasi = $pegawai->observasi;
 
         // Jika data penilaian belum lengkap, bisa lempar exception atau return nilai 0
         if (!$arsip || !$observasi) {
@@ -31,9 +29,6 @@ class ProfileMatchingService
                 'message' => 'Data Arsip atau Observasi belum lengkap untuk pegawai ini.'
             ];
         }
-
-        // Ambil target profil untuk jabatan ini
-        $targets = TargetProfil::with('kriteria')->where('id_jabatan', $id_jabatan)->get();
 
         if ($targets->isEmpty()) {
             return [
@@ -54,11 +49,11 @@ class ProfileMatchingService
             // 2. Hitung GAP
             $gap = $nilai_riil - $target->nilai_target;
 
-            // 3. Konversi GAP ke Bobot
-            $bobot = $this->getBobotGap($gap);
+            // 3. Konversi GAP ke Bobot (Lempar $bobotGaps collection)
+            $bobot = $this->getBobotGap($gap, $bobotGaps);
 
-            // 4. Kelompokkan ke CF atau SF
-            if (strtolower($target->tipe_faktor) == 'core' || strtolower($target->tipe_faktor) == 'core factor') {
+            // 4. Kelompokkan ke CF atau SF (Strict Validation === 'Core')
+            if ($target->tipe_faktor === 'Core') {
                 $coreFactors[] = $bobot;
             } else {
                 $secondaryFactors[] = $bobot;
@@ -76,9 +71,9 @@ class ProfileMatchingService
         
         $nilai_total = ($persenCore * $ncf) + ($persenSecondary * $nsf);
 
-        // 7. Simpan ke database Hasil Rotasi
+        // 7. Simpan ke database Hasil Rotasi beserta periode aktif
         $hasil = HasilRotasi::updateOrCreate(
-            ['id_pegawai' => $id_pegawai, 'id_jabatan_tujuan' => $id_jabatan],
+            ['id_pegawai' => $pegawai->id, 'id_jabatan_tujuan' => $jabatan->id, 'periode_aktif' => $periodeAktif],
             [
                 'nilai_total' => $nilai_total,
                 'status_validasi' => 'Menunggu'
@@ -125,29 +120,14 @@ class ProfileMatchingService
     }
 
     /**
-     * Helper untuk mengambil bobot berdasarkan selisih GAP
+     * Helper untuk mengambil bobot berdasarkan selisih GAP (No Hardcode Fallback)
      */
-    private function getBobotGap($gap)
+    private function getBobotGap($gap, $bobotGaps)
     {
-        // Cari di database
-        $bobotGap = BobotGap::where('selisih', $gap)->first();
-        if ($bobotGap) {
-            return $bobotGap->bobot;
+        if (!isset($bobotGaps[$gap])) {
+            throw new \Exception("FATAL: Konfigurasi Bobot GAP tidak ditemukan untuk selisih [{$gap}]. Silakan lengkapi Master Data Bobot Gap.");
         }
 
-        // Fallback jika tidak ada di DB (hardcode standar Profile Matching)
-        $standar = [
-            '0' => 5,
-            '1' => 4.5,
-            '-1' => 4,
-            '2' => 3.5,
-            '-2' => 3,
-            '3' => 2.5,
-            '-3' => 2,
-            '4' => 1.5,
-            '-4' => 1
-        ];
-
-        return $standar[(string)$gap] ?? 0; // Jika gap diluar batas, beri nilai 0
+        return $bobotGaps[$gap]->bobot;
     }
 }

@@ -1,9 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mb-8">
-    <h1 class="text-3xl font-bold text-slate-800 dark:text-white transition-colors duration-300">Dashboard</h1>
-    <p class="text-slate-500 dark:text-slate-400 mt-2 transition-colors duration-300">Selamat datang, Anda login sebagai <strong>{{ $role ?? 'User' }}</strong>.</p>
+<div class="mb-8 flex justify-between items-start">
+    <div>
+        <h1 class="text-3xl font-bold text-slate-800 dark:text-white transition-colors duration-300">Dashboard</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-2 transition-colors duration-300">Selamat datang, Anda login sebagai <strong>{{ $role ?? 'User' }}</strong>.</p>
+    </div>
+
+    @if($pegawaiOverdue->isNotEmpty())
+    <button onclick="showOverdueAlert()" class="relative p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-rose-200 dark:border-rose-900/50 hover:shadow-md hover:border-rose-300 transition-all group animate-in">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-rose-500 group-hover:text-rose-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <span class="absolute top-2 right-2 flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500 border-2 border-white dark:border-slate-800"></span>
+        </span>
+    </button>
+    @endif
 </div>
 
 <!-- Statistik Cards Row -->
@@ -401,5 +415,121 @@
             });
         }
     });
+</script>
+
+<!-- Chart.js Script Integration (New) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#e2e8f0' : '#475569';
+        const gridColor = isDark ? '#334155' : '#f1f5f9';
+
+        // 1. Chart Distribusi Pegawai
+        const ctxDivisi = document.getElementById('divisiChart');
+        if (ctxDivisi) {
+            new Chart(ctxDivisi, {
+                type: 'doughnut',
+                data: {
+                    labels: {!! json_encode($labelDivisi) !!},
+                    datasets: [{
+                        data: {!! json_encode($dataDivisi) !!},
+                        backgroundColor: {!! json_encode($warnaDivisi) !!},
+                        borderWidth: isDark ? 2 : 0,
+                        borderColor: isDark ? '#1e293b' : '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: textColor } }
+                    }
+                }
+            });
+        }
+
+        // 2. Chart Status Validasi Rotasi
+        const ctxStatus = document.getElementById('spkStatusChart');
+        if (ctxStatus) {
+            new Chart(ctxStatus, {
+                type: 'bar',
+                data: {
+                    labels: ['Menunggu', 'Disetujui', 'Ditolak'],
+                    datasets: [{
+                        label: 'Jumlah Kandidat',
+                        data: [{{ $kandidatMenunggu }}, {{ $kandidatDisetujui }}, {{ $kandidatDitolak }}],
+                        backgroundColor: ['#f59e0b', '#10b981', '#ef4444'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, stepSize: 1 } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+<!-- SweetAlert2 untuk Popup Dinamis -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function showOverdueAlert() {
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        let htmlContent = `
+            <div class="text-left overflow-y-auto max-h-64 mt-4" style="border-top: 1px solid ${isDark ? '#334155' : '#e2e8f0'}; padding-top: 15px;">
+                <table style="width: 100%; font-size: 14px;">
+                    <tbody style="border-collapse: collapse;">
+                        @foreach($pegawaiOverdue as $p)
+                        @php
+                            $tmt = \Carbon\Carbon::parse($p->tmt_jabatan);
+                            $durasiTahun = $tmt->diffInYears(\Carbon\Carbon::now());
+                            $durasiBulan = $tmt->diffInMonths(\Carbon\Carbon::now()) % 12;
+                        @endphp
+                        <tr style="border-bottom: 1px solid ${isDark ? '#334155' : '#f1f5f9'};">
+                            <td style="padding: 10px 0;">
+                                <div style="font-weight: bold; color: ${isDark ? '#f8fafc' : '#1e293b'}">{{ $p->nama }}</div>
+                                <div style="font-size: 12px; color: ${isDark ? '#94a3b8' : '#64748b'}">{{ $p->jabatan->nama_jabatan ?? '-' }}</div>
+                            </td>
+                            <td style="padding: 10px 0; text-align: right;">
+                                <span style="background-color: ${isDark ? '#4c1d95' : '#ede9fe'}; color: ${isDark ? '#c4b5fd' : '#6d28d9'}; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 12px;">
+                                    {{ $durasiTahun }}th {{ $durasiBulan }}bln
+                                </span>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        Swal.fire({
+            title: '<span style="color: #e11d48">Alarm Jatuh Tempo</span>',
+            html: `<p style="font-size: 14px; margin-bottom: 10px;">Terdapat <strong>{{ $pegawaiOverdue->count() }} pegawai</strong> yang telah menjabat lebih dari 4 tahun. Segera jadwalkan rotasi untuk mereka.</p>` + htmlContent,
+            icon: 'warning',
+            width: '600px',
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f1f5f9' : '#0f172a',
+            confirmButtonText: 'Tutup & Ke Proses SPK',
+            confirmButtonColor: '#4f46e5',
+            showCancelButton: true,
+            cancelButtonText: 'Tutup',
+            cancelButtonColor: isDark ? '#475569' : '#94a3b8',
+            customClass: {
+                popup: 'rounded-3xl'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{{ route('spk.proses') }}";
+            }
+        });
+    }
 </script>
 @endsection

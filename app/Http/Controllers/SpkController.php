@@ -52,14 +52,21 @@ class SpkController extends Controller
         try {
             DB::beginTransaction();
 
-            // Mereset (Hapus) seluruh hasil rotasi dan data validasi sebelumnya
-            HasilRotasi::query()->delete();
+            $currentPeriode = \Carbon\Carbon::now()->translatedFormat('F Y');
+            $periodeAktif = "Periode " . $currentPeriode;
 
-            // Ambil kandidat yang dinominasikan dan nilainya sudah lengkap (ada di arsip dan observasi)
-            $pegawais = Pegawai::whereIn('id', $request->nominasi_ids)
+            // Hapus hasil rotasi sebelumnya HANYA untuk periode saat ini dan yang belum dieksekusi
+            HasilRotasi::where('periode_aktif', $periodeAktif)
+                       ->where('status_validasi', '!=', 'Dieksekusi')
+                       ->delete();
+
+            // Ambil kandidat dengan EAGER LOADING penuh (N+1 Fix)
+            $pegawais = Pegawai::with(['arsip', 'observasi', 'jabatan'])
+                               ->whereIn('id', $request->nominasi_ids)
                                ->whereHas('arsip')
                                ->whereHas('observasi')
-                               ->get();
+                               ->get()
+                               ->keyBy('id');
             
             if ($pegawais->isEmpty()) {
                 return redirect()->back()->with('error', 'Kandidat yang dinominasikan belum melengkapi data penilaian secara penuh.');
@@ -67,6 +74,18 @@ class SpkController extends Controller
             
             // Gunakan daftar jabatan yang DIPILIH oleh Admin
             $jabatanIds = $request->jabatan_ids;
+            $jabatans = \App\Models\Jabatan::whereIn('id', $jabatanIds)->get()->keyBy('id');
+            
+            // Eager load seluruh TargetProfil beserta kriteria-nya (N+1 Fix)
+            $allTargets = \App\Models\TargetProfil::with('kriteria')
+                                ->whereIn('id_jabatan', $jabatanIds)
+                                ->get()
+                                ->groupBy('id_jabatan');
+
+            // Eager load seluruh BobotGap (N+1 Fix) dan cast key ke integer
+            $allBobotGaps = \App\Models\BobotGap::all()->keyBy(function($item) {
+                return (int) $item->selisih;
+            });
 
             // Hitung kecocokan tiap pegawai terhadap tiap jabatan
             foreach ($pegawais as $pegawai) {
@@ -75,8 +94,12 @@ class SpkController extends Controller
                     if ($pegawai->id_jabatan == $id_jabatan) {
                         continue; 
                     }
+                    
+                    $jabatan = $jabatans->get($id_jabatan);
+                    $targets = $allTargets->get($id_jabatan, collect());
 
-                    $this->profileMatchingService->hitung($pegawai->id, $id_jabatan);
+                    // Teruskan data yang sudah di-load ke Service
+                    $this->profileMatchingService->hitung($pegawai, $jabatan, $targets, $allBobotGaps, $periodeAktif);
                 }
             }
 
@@ -93,8 +116,17 @@ class SpkController extends Controller
      */
     public function hasil()
     {
-        // Mengambil hasil perhitungan dari database, diurutkan berdasarkan jabatan dan nilai total tertinggi
+        // Cari periode aktif terakhir yang belum dieksekusi
+        $latestPeriode = HasilRotasi::where('status_validasi', '!=', 'Dieksekusi')
+                                    ->orderBy('id', 'desc')
+                                    ->value('periode_aktif');
+
+        // Mengambil hasil perhitungan dari database
         $hasil = HasilRotasi::with(['pegawai', 'jabatan'])
+                    ->when($latestPeriode, function($q) use ($latestPeriode) {
+                        return $q->where('periode_aktif', $latestPeriode);
+                    })
+                    ->where('status_validasi', '!=', 'Dieksekusi')
                     ->orderBy('id_jabatan_tujuan')
                     ->orderByDesc('nilai_total')
                     ->get();
@@ -131,14 +163,14 @@ class SpkController extends Controller
 
                 // 1. Update kuota jabatan lama (bertambah karena ditinggalkan)
                 if ($jabatanLamaId) {
-                    $jabatanLama = \App\Models\Jabatan::find($jabatanLamaId);
+                    $jabatanLama = \App\Models\Jabatan::lockForUpdate()->find($jabatanLamaId);
                     if ($jabatanLama) {
                         $jabatanLama->increment('kuota_kosong');
                     }
                 }
 
                 // 2. Update kuota jabatan baru (berkurang karena terisi)
-                $jabatanBaru = \App\Models\Jabatan::find($jabatanBaruId);
+                $jabatanBaru = \App\Models\Jabatan::lockForUpdate()->find($jabatanBaruId);
                 if ($jabatanBaru) {
                     // Mencegah kuota minus
                     if ($jabatanBaru->kuota_kosong > 0) {
@@ -147,11 +179,22 @@ class SpkController extends Controller
                 }
 
                 // 3. Pindahkan pegawai ke jabatan baru
-                $pegawai->update(['id_jabatan' => $jabatanBaruId]);
+                $pegawai->update([
+                    'id_jabatan' => $jabatanBaruId,
+                    'tmt_jabatan' => \Carbon\Carbon::now()->format('Y-m-d')
+                ]);
+                
+                // 4. Ubah status hasil menjadi Dieksekusi (Audit Trail)
+                $hasil->update(['status_validasi' => 'Dieksekusi']);
             }
 
-            // 4. Bersihkan data spk untuk menutup siklus periode rotasi
-            HasilRotasi::query()->delete();
+            // Tolak sisa kandidat yang masih berstatus 'Menunggu' pada periode yang sama
+            if ($hasilDisetujui->isNotEmpty()) {
+                $periode = $hasilDisetujui->first()->periode_aktif;
+                HasilRotasi::where('periode_aktif', $periode)
+                           ->where('status_validasi', 'Menunggu')
+                           ->update(['status_validasi' => 'Dibatalkan (Siklus Berakhir)']);
+            }
 
             DB::commit();
             return redirect()->route('spk.hasil')->with('success', 'Mutasi berhasil dieksekusi secara permanen! Data pegawai dan kuota jabatan telah diperbarui secara otomatis.');

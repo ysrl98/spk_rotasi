@@ -25,12 +25,12 @@ class KejariBanjarmasinSeeder extends Seeder
 
         // 2. Data Kriteria
         $kriterias = [
-            ['nama_kriteria' => 'Pendidikan', 'sumber_nilai' => 'arsip', 'created_at' => $now, 'updated_at' => $now], // id: 1
-            ['nama_kriteria' => 'Masa Kerja', 'sumber_nilai' => 'arsip', 'created_at' => $now, 'updated_at' => $now], // id: 2
-            ['nama_kriteria' => 'Nilai SKP', 'sumber_nilai' => 'arsip', 'created_at' => $now, 'updated_at' => $now],  // id: 3
-            ['nama_kriteria' => 'Disiplin', 'sumber_nilai' => 'arsip', 'created_at' => $now, 'updated_at' => $now],   // id: 4
-            ['nama_kriteria' => 'Inisiatif', 'sumber_nilai' => 'observasi', 'created_at' => $now, 'updated_at' => $now],  // id: 5
-            ['nama_kriteria' => 'Kerjasama', 'sumber_nilai' => 'observasi', 'created_at' => $now, 'updated_at' => $now],  // id: 6
+            ['nama_kriteria' => 'Pendidikan', 'sumber_nilai' => 'arsip.nilai_pendidikan', 'created_at' => $now, 'updated_at' => $now], // id: 1
+            ['nama_kriteria' => 'Masa Kerja', 'sumber_nilai' => 'arsip.nilai_masa_kerja', 'created_at' => $now, 'updated_at' => $now], // id: 2
+            ['nama_kriteria' => 'Nilai SKP', 'sumber_nilai' => 'arsip.nilai_skp', 'created_at' => $now, 'updated_at' => $now],  // id: 3
+            ['nama_kriteria' => 'Disiplin', 'sumber_nilai' => 'arsip.nilai_disiplin', 'created_at' => $now, 'updated_at' => $now],   // id: 4
+            ['nama_kriteria' => 'Inisiatif', 'sumber_nilai' => 'observasi.nilai_inisiatif', 'created_at' => $now, 'updated_at' => $now],  // id: 5
+            ['nama_kriteria' => 'Kerjasama', 'sumber_nilai' => 'observasi.nilai_kerjasama', 'created_at' => $now, 'updated_at' => $now],  // id: 6
         ];
         DB::table('tb_kriteria')->insert($kriterias);
 
