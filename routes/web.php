@@ -64,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:Admin,Pimpinan'])->group(function () {
         Route::get('/jabatan', [JabatanController::class, 'index'])->name('jabatan.index');
         Route::get('/spk/hasil', [SpkController::class, 'hasil'])->name('spk.hasil');
+        Route::get('/cetak-sk-mutasi', [LaporanController::class, 'cetakSK'])->name('cetak.sk');
     });
 
     Route::middleware(['role:Admin'])->group(function () {
@@ -99,6 +100,5 @@ Route::middleware(['auth'])->group(function () {
         
         // Laporan Final & Cetak SK Rotasi
         Route::get('/laporan/ranking', [LaporanController::class, 'ranking'])->name('laporan.ranking');
-        Route::get('/cetak-sk/{id}', [LaporanController::class, 'cetakSK'])->name('cetak.sk');
     });
 });

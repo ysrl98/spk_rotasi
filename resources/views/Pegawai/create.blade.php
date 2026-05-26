@@ -79,6 +79,38 @@
             @enderror
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- TMT Jabatan Input -->
+            <div>
+                <label class="block mb-2 text-sm font-bold text-slate-700 dark:text-slate-300" for="tmt_jabatan">TMT Jabatan (Tanggal Mulai Menjabat)</label>
+                <input type="date" id="tmt_jabatan" name="tmt_jabatan" value="{{ old('tmt_jabatan') }}"
+                    class="w-full border @error('tmt_jabatan') border-red-500 focus:ring-red-500 @else border-slate-300 dark:border-slate-600 focus:ring-indigo-500 @enderror bg-white dark:bg-slate-700 text-slate-800 dark:text-white px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all shadow-sm" required>
+                @error('tmt_jabatan')
+                    <p class="text-red-500 text-xs mt-1 font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Hukuman Disiplin Input -->
+            <div>
+                <label class="block mb-2 text-sm font-bold text-slate-700 dark:text-slate-300" for="hukuman_disiplin">Status Hukuman Disiplin</label>
+                <div class="flex items-center gap-4 h-[42px]">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="hukuman_disiplin" value="1" {{ old('hukuman_disiplin') == '1' ? 'checked' : '' }}
+                            class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                        <span class="text-sm text-slate-700 dark:text-slate-300">Ya (Sedang Dihukum)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="hukuman_disiplin" value="0" {{ old('hukuman_disiplin', '0') == '0' ? 'checked' : '' }}
+                            class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                        <span class="text-sm text-slate-700 dark:text-slate-300">Tidak</span>
+                    </label>
+                </div>
+                @error('hukuman_disiplin')
+                    <p class="text-red-500 text-xs mt-1 font-semibold">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="flex gap-3 mt-8 pt-4 border-t border-slate-100 dark:border-slate-700/50">
             <a href="{{ route('pegawai.index') }}"

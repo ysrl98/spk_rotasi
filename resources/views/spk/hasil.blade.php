@@ -13,9 +13,16 @@
         @endphp
 
         @if($adaDisetujui && Auth::user()->role === 'Admin')
-        <form action="{{ route('spk.eksekusi') }}" method="POST" onsubmit="return confirm('PERINGATAN: Mengeksekusi mutasi akan secara PERMANEN memindahkan jabatan pegawai, mengubah kuota jabatan, dan mengosongkan layar hasil ini. Apakah Anda yakin ingin melanjutkan?');">
+        <a href="{{ route('cetak.sk') }}" target="_blank" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-sm transition-all font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+            </svg>
+            Unduh SK Mutasi (PDF)
+        </a>
+
+        <form action="{{ route('spk.eksekusi') }}" method="POST" onsubmit="return confirm('PERINGATAN: Mengeksekusi mutasi akan secara PERMANEN memindahkan jabatan pegawai, mengubah kuota jabatan, dan mengosongkan layar hasil ini. Apakah Anda yakin ingin melanjutkan? Pastikan Anda sudah mengunduh SK!');">
             @csrf
-            <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg shadow-rose-200 dark:shadow-rose-900/50 transition-all font-bold flex items-center gap-2 animate-pulse hover:animate-none">
+            <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 dark:shadow-indigo-900/50 transition-all font-bold flex items-center gap-2 animate-pulse hover:animate-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
                 </svg>

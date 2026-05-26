@@ -27,11 +27,21 @@ class PegawaiController extends Controller
             'nama' => 'required|string|max:100',
             'pangkat' => 'required|string|max:50',
             'golongan' => 'required|string|max:20',
-            'id_jabatan' => 'required|exists:tb_jabatan,id'
+            'id_jabatan' => 'required|exists:tb_jabatan,id',
+            'tmt_jabatan' => 'required|date',
+            'hukuman_disiplin' => 'boolean'
         ]);
+
+        $validated['hukuman_disiplin'] = $request->has('hukuman_disiplin');
 
         Pegawai::create($validated);
         return redirect()->route('pegawai.index')->with('success', 'Pegawai berhasil ditambahkan.');
+    }
+
+    public function show(Pegawai $pegawai)
+    {
+        $pegawai->load(['jabatan', 'arsip', 'observasi']);
+        return view('pegawai.show', compact('pegawai'));
     }
 
     public function edit(Pegawai $pegawai)
@@ -47,8 +57,12 @@ class PegawaiController extends Controller
             'nama' => 'required|string|max:100',
             'pangkat' => 'required|string|max:50',
             'golongan' => 'required|string|max:20',
-            'id_jabatan' => 'required|exists:tb_jabatan,id'
+            'id_jabatan' => 'required|exists:tb_jabatan,id',
+            'tmt_jabatan' => 'required|date',
+            'hukuman_disiplin' => 'boolean'
         ]);
+
+        $validated['hukuman_disiplin'] = $request->has('hukuman_disiplin');
 
         $pegawai->update($validated);
         return redirect()->route('pegawai.index')->with('success', 'Pegawai berhasil diupdate.');

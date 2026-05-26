@@ -115,18 +115,47 @@
                         <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50">NIP</th>
                         <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50">Nama Pegawai</th>
                         <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50">Jabatan Saat Ini</th>
-                        <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50 text-center last:rounded-r-xl">Status Penilaian</th>
+                        <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50 text-center">Status Penilaian</th>
+                        <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-sm border-b border-slate-100 dark:border-slate-700/50 text-center last:rounded-r-xl">Syarat Mutasi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($pegawais as $pegawai)
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                    @php
+                        $tmt = $pegawai->tmt_jabatan ? \Carbon\Carbon::parse($pegawai->tmt_jabatan) : null;
+                        $masaJabatanThn = $tmt ? $tmt->diffInYears(now()) : 0;
+                        $isEligible = true;
+                        $tmsReason = [];
+                        
+                        if ($pegawai->hukuman_disiplin) {
+                            $isEligible = false;
+                            $tmsReason[] = 'Hukuman Disiplin';
+                        }
+                        if ($tmt && $masaJabatanThn < 2) {
+                            $isEligible = false;
+                            $tmsReason[] = 'Tenure < 2 Thn';
+                        }
+                        if (!$tmt) {
+                            $isEligible = false;
+                            $tmsReason[] = 'TMT Kosong';
+                        }
+                    @endphp
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors {{ !$isEligible ? 'opacity-60 bg-slate-50/50 dark:bg-slate-800/50' : '' }}">
                         <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center">
+                            @if($isEligible)
                             <input type="checkbox" name="nominasi_ids[]" value="{{ $pegawai->id }}" class="nominasi-checkbox w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer" checked>
+                            @else
+                            <input type="checkbox" disabled class="w-4 h-4 text-slate-300 bg-slate-100 border-slate-200 rounded cursor-not-allowed dark:bg-slate-700 dark:border-slate-600" title="Tidak Memenuhi Syarat">
+                            @endif
                         </td>
                         <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 text-sm">{{ $pegawai->nip }}</td>
                         <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 font-semibold text-slate-800 dark:text-slate-200 text-sm">{{ $pegawai->nama }}</td>
-                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 text-sm">{{ $pegawai->jabatan->nama_jabatan ?? '-' }}</td>
+                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-400 text-sm">
+                            {{ $pegawai->jabatan->nama_jabatan ?? '-' }}
+                            @if($tmt)
+                                <div class="text-[10px] text-slate-400 mt-0.5">TMT: {{ $tmt->format('d M Y') }} ({{ $masaJabatanThn }} thn)</div>
+                            @endif
+                        </td>
                         <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center flex flex-col items-center gap-1 bg-transparent">
                             @if($pegawai->arsip)
                                 <span class="inline-flex items-center w-full justify-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Arsip: OK</span>
@@ -138,6 +167,16 @@
                                 <span class="inline-flex items-center w-full justify-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-400">Observasi: OK</span>
                             @else
                                 <span class="inline-flex items-center w-full justify-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400">Observasi: X</span>
+                            @endif
+                        </td>
+                        <td class="py-3 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center">
+                            @if($isEligible)
+                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/30">MS (Memenuhi Syarat)</span>
+                            @else
+                                <div class="flex flex-col items-center gap-1">
+                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border border-red-200 dark:border-red-800/30">TMS</span>
+                                    <span class="text-[10px] text-red-500 font-medium">{{ implode(', ', $tmsReason) }}</span>
+                                </div>
                             @endif
                         </td>
                     </tr>

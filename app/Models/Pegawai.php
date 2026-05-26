@@ -6,8 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pegawai extends Model
 {
-    protected $table = 'tb_pegawai'; // Tambahkan ini
-    protected $fillable = ['nip', 'nama', 'pangkat', 'golongan', 'id_jabatan'];
+    protected $table = 'tb_pegawai';
+    protected $fillable = ['nip', 'nama', 'pangkat', 'golongan', 'id_jabatan', 'tmt_jabatan', 'hukuman_disiplin'];
+
+    protected $casts = [
+        'tmt_jabatan' => 'date',
+        'hukuman_disiplin' => 'boolean',
+    ];
 
     public function jabatan()
     {
