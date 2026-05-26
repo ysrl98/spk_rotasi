@@ -48,6 +48,8 @@ Route::middleware(['auth'])->group(function () {
         // Pengaturan Parameter SPK
         Route::resource('target-profil', TargetProfilController::class);
         Route::resource('bobot-gap', BobotGapKontroller::class);
+        Route::get('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::put('/pengaturan', [\App\Http\Controllers\PengaturanController::class, 'update'])->name('pengaturan.update');
         
         // Input Data Arsip Objektif
         Route::resource('arsip', ArsipController::class);

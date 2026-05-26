@@ -39,6 +39,7 @@ class ProfileMatchingService
 
         $coreFactors = [];
         $secondaryFactors = [];
+        $kriteriaDetails = [];
 
         foreach ($targets as $target) {
             $kriteria = $target->kriteria;
@@ -58,6 +59,16 @@ class ProfileMatchingService
             } else {
                 $secondaryFactors[] = $bobot;
             }
+
+            // Simpan riwayat detail untuk kriteria ini
+            $kriteriaDetails[] = [
+                'nama_kriteria' => $kriteria->nama_kriteria,
+                'tipe_faktor' => $target->tipe_faktor,
+                'nilai_riil' => $nilai_riil,
+                'nilai_target' => $target->nilai_target,
+                'gap' => $gap,
+                'bobot' => $bobot
+            ];
         }
 
         // 5. Hitung NCF (Nilai Core Factor) dan NSF (Nilai Secondary Factor)
@@ -65,18 +76,30 @@ class ProfileMatchingService
         $nsf = count($secondaryFactors) > 0 ? array_sum($secondaryFactors) / count($secondaryFactors) : 0;
 
         // 6. Hitung Nilai Akhir (Total Value)
-        // Persentase diambil dari config
-        $persenCore = config('spk.bobot_core_factor', 0.60);
-        $persenSecondary = config('spk.bobot_secondary_factor', 0.40);
+        // Persentase diambil dari Database Pengaturan Dinamis
+        $pengaturan = \App\Models\Pengaturan::first();
+        $persenCore = ($pengaturan->persen_core ?? 60) / 100;
+        $persenSecondary = ($pengaturan->persen_secondary ?? 40) / 100;
         
         $nilai_total = ($persenCore * $ncf) + ($persenSecondary * $nsf);
 
-        // 7. Simpan ke database Hasil Rotasi beserta periode aktif
+        // 7. Siapkan JSON Snapshot untuk Transparansi Kalkulasi
+        $detail_kalkulasi = [
+            'kriteria' => $kriteriaDetails,
+            'ncf' => round($ncf, 2),
+            'nsf' => round($nsf, 2),
+            'persen_core' => $persenCore * 100,
+            'persen_secondary' => $persenSecondary * 100,
+            'rumus_akhir' => "({$persenCore} x " . round($ncf, 2) . ") + ({$persenSecondary} x " . round($nsf, 2) . ") = " . round($nilai_total, 2)
+        ];
+
+        // 8. Simpan ke database Hasil Rotasi beserta periode aktif dan detail kalkulasi
         $hasil = HasilRotasi::updateOrCreate(
             ['id_pegawai' => $pegawai->id, 'id_jabatan_tujuan' => $jabatan->id, 'periode_aktif' => $periodeAktif],
             [
                 'nilai_total' => $nilai_total,
-                'status_validasi' => 'Menunggu'
+                'status_validasi' => 'Menunggu',
+                'detail_kalkulasi' => $detail_kalkulasi
             ]
         );
 

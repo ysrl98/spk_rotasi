@@ -68,7 +68,8 @@
                         <tr class="bg-slate-50 dark:bg-slate-700/50 rounded-xl">
                             <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 first:rounded-l-xl text-center w-16">Peringkat</th>
                             <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50">Nama Kandidat</th>
-                            <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 text-center last:rounded-r-xl">Total Nilai Akhir</th>
+                            <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 text-center">Total Nilai Akhir</th>
+                            <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 text-center last:rounded-r-xl">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,6 +95,16 @@
                                     {{ number_format($row->nilai_total, 2) }}
                                 </span>
                             </td>
+                            <td class="py-4 px-4 border-b border-slate-100 dark:border-slate-700/50 text-center">
+                                @if($row->detail_kalkulasi)
+                                <button type="button" onclick='showDetailKalkulasi(@json($row->detail_kalkulasi), @json($row->pegawai->nama))' class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 rounded-lg transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                                    </svg>
+                                    Detail Perhitungan
+                                </button>
+                                @endif
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -118,3 +129,133 @@
 
 @endif
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function showDetailKalkulasi(detail, namaPegawai) {
+        if (!detail || !detail.kriteria) {
+            Swal.fire('Error', 'Detail kalkulasi tidak ditemukan (Mungkin kalkulasi lama).', 'error');
+            return;
+        }
+
+        let tableRows = '';
+        detail.kriteria.forEach(k => {
+            let badgeClass = k.tipe_faktor === 'Core' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700';
+            tableRows += `
+                <tr class="border-b border-slate-100 dark:border-slate-700">
+                    <td class="text-left py-2 font-medium text-slate-800 dark:text-slate-200">${k.nama_kriteria}</td>
+                    <td class="py-2"><span class="px-2 py-0.5 rounded text-xs font-bold ${badgeClass}">${k.tipe_faktor}</span></td>
+                    <td class="py-2 text-center text-slate-600 dark:text-slate-300">${k.nilai_riil}</td>
+                    <td class="py-2 text-center text-slate-600 dark:text-slate-300">${k.nilai_target}</td>
+                    <td class="py-2 text-center font-bold text-rose-500">${k.gap}</td>
+                    <td class="py-2 text-center font-bold text-emerald-600">${k.bobot}</td>
+                </tr>
+            `;
+        });
+
+        let htmlContent = `
+            <div class="text-sm">
+                <!-- RADAR CHART CONTAINER -->
+                <div class="mb-4 bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700">
+                    <canvas id="radarChart" height="150"></canvas>
+                </div>
+
+                <div class="overflow-x-auto mb-4 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <table class="w-full text-xs">
+                        <thead class="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            <tr>
+                                <th class="py-2 px-2 text-left">Kriteria</th>
+                                <th class="py-2 px-2">Faktor</th>
+                                <th class="py-2 px-2">Riil</th>
+                                <th class="py-2 px-2">Target</th>
+                                <th class="py-2 px-2">GAP</th>
+                                <th class="py-2 px-2">Bobot</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-4 text-left">
+                    <div class="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg border border-indigo-100 dark:border-indigo-800/50">
+                        <p class="text-indigo-600 dark:text-indigo-400 text-xs font-bold mb-1">Core Factor (${detail.persen_core}%)</p>
+                        <p class="text-xl font-black text-indigo-700 dark:text-indigo-300">${detail.ncf}</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <p class="text-slate-600 dark:text-slate-400 text-xs font-bold mb-1">Secondary Factor (${detail.persen_secondary}%)</p>
+                        <p class="text-xl font-black text-slate-700 dark:text-slate-300">${detail.nsf}</p>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/50 text-center">
+                    <p class="text-emerald-700 dark:text-emerald-400 text-xs font-bold mb-1">Formula Nilai Akhir</p>
+                    <p class="text-lg font-black text-emerald-800 dark:text-emerald-300 font-mono">${detail.rumus_akhir}</p>
+                </div>
+            </div>
+        `;
+
+        Swal.fire({
+            title: '<strong class="text-xl">Analisis Profil Kesenjangan</strong>',
+            html: htmlContent,
+            width: '600px',
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+                popup: 'rounded-[2rem] dark:bg-slate-900',
+                title: 'text-slate-800 dark:text-white',
+                htmlContainer: 'text-slate-600 dark:text-slate-300'
+            },
+            didOpen: () => {
+                const ctx = document.getElementById('radarChart').getContext('2d');
+                const labels = detail.kriteria.map(k => k.nama_kriteria);
+                const dataTarget = detail.kriteria.map(k => k.nilai_target);
+                const dataRiil = detail.kriteria.map(k => k.nilai_riil);
+
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Target Posisi (Yang Dibutuhkan)',
+                                data: dataTarget,
+                                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                                borderColor: 'rgba(99, 102, 241, 1)',
+                                pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                                borderWidth: 2,
+                            },
+                            {
+                                label: 'Profil ' + namaPegawai + ' (Riil)',
+                                data: dataRiil,
+                                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                borderColor: 'rgba(16, 185, 129, 1)',
+                                pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                                borderWidth: 2,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                min: 0,
+                                max: 5,
+                                ticks: { stepSize: 1, backdropColor: 'transparent', display: false }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { boxWidth: 12, padding: 15 }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+</script>
+@endpush
